@@ -1,0 +1,135 @@
+
+<!DOCTYPE html>
+<html lang="es">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Matemáticas con BlackMamba</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@300;500;700&display=swap" rel="stylesheet">
+    <style>
+        :root {
+            --accent-primary: #a3e635;
+            --accent-secondary: #10b981;
+            --accent-highlight: #fbbf24;
+            --accent-glow: rgba(163, 230, 53, 0.4);
+            --bg-atmosphere: #050505;
+            --text-main: #f8fafc;
+            --text-contrast: #000000;
+        }
+
+        body {
+            font-family: 'Plus Jakarta Sans', sans-serif;
+            background-color: var(--bg-atmosphere);
+            color: var(--text-main);
+            overflow-x: hidden;
+            transition: all 4s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+
+        /* --- THE LIVING CIPHER ENGINE --- */
+
+        /* 1. Breathing Text Effect */
+        @keyframes text-flux {
+            0%, 100% { letter-spacing: -0.02em; opacity: 0.9; filter: blur(0px); }
+            50% { letter-spacing: 0.05em; opacity: 1; filter: blur(0.2px); }
+        }
+        h1, h2, h3, .mamba-text {
+            animation: text-flux 8s ease-in-out infinite;
+            will-change: letter-spacing, opacity;
+        }
+
+        /* 2. Radiant Perimeter Flow */
+        @keyframes border-run {
+            0% { background-position: 0% 50%; }
+            50% { background-position: 100% 50%; }
+            100% { background-position: 0% 50%; }
+        }
+        .glass {
+            position: relative;
+            background: rgba(10, 10, 10, 0.8);
+            backdrop-filter: blur(25px);
+            overflow: hidden;
+            border: 1px solid rgba(255, 255, 255, 0.03);
+            transition: all 0.5s cubic-bezier(0.4, 0, 0.2, 1);
+        }
+        .glass::before {
+            content: '';
+            position: absolute;
+            inset: -2px;
+            background: linear-gradient(90deg, transparent, var(--accent-primary), transparent, var(--accent-secondary), transparent);
+            background-size: 300% 300%;
+            animation: border-run 6s linear infinite;
+            opacity: 0.1;
+            z-index: -1;
+            transition: opacity 0.5s;
+        }
+        .glass:hover::before { opacity: 0.4; }
+
+        /* 3. Floating Symbols */
+        @keyframes symbol-float {
+            0%, 100% { transform: translateY(0) rotate(0deg); filter: drop-shadow(0 0 5px var(--accent-glow)); }
+            50% { transform: translateY(-15px) rotate(5deg); filter: drop-shadow(0 0 20px var(--accent-glow)); }
+        }
+        .living-symbol {
+            display: inline-block;
+            animation: symbol-float 4s ease-in-out infinite;
+        }
+
+        /* 4. Micro-vibration for Interactive elements */
+        @keyframes micro-vibe {
+            0% { transform: translate(0,0); }
+            25% { transform: translate(0.5px, -0.5px); }
+            50% { transform: translate(-0.5px, 0.5px); }
+            75% { transform: translate(0.5px, 0.5px); }
+            100% { transform: translate(0,0); }
+        }
+        button:hover, input:hover {
+            animation: micro-vibe 0.1s linear infinite;
+        }
+
+        /* Sunset Engine v6 - With Moving Particles */
+        .sunset-engine {
+            position: fixed;
+            inset: 0;
+            z-index: -20;
+            background: radial-gradient(
+                circle at var(--mouse-x, 50%) var(--mouse-y, 50%), 
+                var(--bg-atmosphere) 0%, 
+                var(--accent-secondary) 200%
+            );
+            opacity: 0.4;
+            transition: all 5s ease;
+        }
+
+        .mamba-gradient {
+            background: linear-gradient(135deg, var(--accent-primary) 0%, var(--accent-secondary) 100%);
+            background-size: 200% 200%;
+            animation: border-run 10s ease infinite;
+        }
+
+        .accent-text { color: var(--accent-primary) !important; transition: color 3s ease; }
+        .accent-bg { background-color: var(--accent-primary) !important; transition: background-color 3s ease; }
+        
+        ::-webkit-scrollbar { width: 5px; }
+        ::-webkit-scrollbar-track { background: var(--bg-atmosphere); }
+        ::-webkit-scrollbar-thumb { background: var(--accent-primary); border-radius: 10px; }
+    </style>
+<script type="importmap">
+{
+  "imports": {
+    "@google/genai": "https://esm.sh/@google/genai@^1.35.0",
+    "recharts": "https://esm.sh/recharts@^3.6.0",
+    "react/": "https://esm.sh/react@^19.2.3/",
+    "react": "https://esm.sh/react@^19.2.3",
+    "react-dom/": "https://esm.sh/react-dom@^19.2.3/"
+  }
+}
+</script>
+</head>
+<body onmousemove="document.documentElement.style.setProperty('--mouse-x', (event.clientX / window.innerWidth * 100) + '%'); document.documentElement.style.setProperty('--mouse-y', (event.clientY / window.innerHeight * 100) + '%');">
+    <div class="sunset-engine"></div>
+    <div id="root"></div>
+</body>
+</html>
