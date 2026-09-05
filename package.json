@@ -1,11 +1,13 @@
 {
-  "name": "copy-of-matemáticas-con-blackmamba",
+  "name": "blackmamba-university",
   "private": true,
-  "version": "0.0.0",
+  "version": "0.8.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "typecheck": "tsc --noEmit",
     "build": "vite build",
+    "check": "npm run typecheck && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
