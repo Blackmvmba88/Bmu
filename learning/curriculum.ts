@@ -13,7 +13,7 @@ interface CurriculumRegistry {
   };
 }
 
-const curriculum = registry as CurriculumRegistry;
+const curriculum = registry as unknown as CurriculumRegistry;
 
 export const competencies: CompetencyDefinition[] = curriculum.competencies;
 export const modules: ModuleDefinition[] = curriculum.modules;
