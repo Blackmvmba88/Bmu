@@ -1,8 +1,10 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MathTab, UserRole, UserProfile, BMU_Theme } from './types';
 import type { LearnerState, ModuleDefinition } from './learning/contracts';
+import { applyLearningEvent } from './learning/engine';
+import { createPracticeAttemptEvent } from './learning/events';
 import { loadLearnerState, saveLearnerState } from './learning/persistence';
-import { FractionVisualizer } from './components/FractionVisualizer';
+import { FractionVisualizer, type FractionAttempt } from './components/FractionVisualizer';
 import { AICoach } from './components/AICoach';
 import { BlackMambaRoadmap } from './components/BlackMambaRoadmap';
 import { MambaLab } from './components/MambaLab';
@@ -149,6 +151,34 @@ const App: React.FC = () => {
       localStorage.setItem(`bmu_active_module_${currentUser.uid}`, module.id);
     }
     setActiveTab(MODULE_TAB_BY_ID[module.id] ?? MathTab.ROADMAP);
+  };
+
+  const recordFractionAttempt = (attempt: FractionAttempt) => {
+    setLearnerState((current) => {
+      if (!current) return current;
+
+      const numeratorScore = attempt.selectedNumerator === attempt.targetNumerator ? 1 : 0;
+      const denominatorScore = attempt.selectedDenominator === attempt.targetDenominator ? 1 : 0;
+      const score = (numeratorScore + denominatorScore) / 2;
+
+      const event = createPracticeAttemptEvent({
+        learnerId: current.learnerId,
+        moduleId: 'math-foundations',
+        competencyId: 'math-number-sense',
+        activityId: attempt.challengeId,
+        score,
+        metadata: {
+          variantId: attempt.challengeId,
+          selectedNumerator: attempt.selectedNumerator,
+          selectedDenominator: attempt.selectedDenominator,
+          targetNumerator: attempt.targetNumerator,
+          targetDenominator: attempt.targetDenominator,
+          correct: attempt.correct,
+        },
+      });
+
+      return applyLearningEvent(current, event);
+    });
   };
 
   if (!currentUser) {
@@ -298,7 +328,12 @@ const App: React.FC = () => {
               Inicializando estado académico...
             </div>
           )}
-          {activeTab === MathTab.FRACTIONS && <FractionVisualizer theme={currentUser.role === 'Alumno' ? 'mamba' : 'pao'} />}
+          {activeTab === MathTab.FRACTIONS && (
+            <FractionVisualizer
+              theme={currentUser.role === 'Alumno' ? 'mamba' : 'pao'}
+              onAttempt={recordFractionAttempt}
+            />
+          )}
           {activeTab === MathTab.CIRCUITS && <MambaCircuits />}
           {activeTab === MathTab.PHYSICS_BMU && <BMUPhysics theme={currentUser.role === 'Alumno' ? 'mamba' : 'pao'} />}
           {activeTab === MathTab.CHEMISTRY_BMU && <MambaLab theme={currentUser.role === 'Alumno' ? 'mamba' : 'pao'} />}
