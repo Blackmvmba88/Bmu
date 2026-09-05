@@ -62,6 +62,12 @@ export const isLearnerState = (
       return false;
     }
     if (
+      progress.lastDemonstratedAt !== undefined &&
+      typeof progress.lastDemonstratedAt !== 'string'
+    ) {
+      return false;
+    }
+    if (
       progress.lastReviewAt !== undefined &&
       typeof progress.lastReviewAt !== 'string'
     ) {
