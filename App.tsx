@@ -1,10 +1,12 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { MathTab, UserRole, UserProfile, BMU_Theme } from './types';
 import type { LearnerState, ModuleDefinition } from './learning/contracts';
-import { applyLearningEvent } from './learning/engine';
-import { createPracticeAttemptEvent } from './learning/events';
+import { competencyById } from './learning/curriculum';
+import { applyLearningEvent, retentionStatus } from './learning/engine';
+import { createPracticeAttemptEvent, createRetentionReviewEvent } from './learning/events';
 import { loadLearnerState, saveLearnerState } from './learning/persistence';
 import { FractionVisualizer, type FractionAttempt } from './components/FractionVisualizer';
+import { FractionRetentionReview } from './components/FractionRetentionReview';
 import { AICoach } from './components/AICoach';
 import { BlackMambaRoadmap } from './components/BlackMambaRoadmap';
 import { MambaLab } from './components/MambaLab';
@@ -34,9 +36,12 @@ const MODULE_TAB_BY_ID: Record<string, MathTab> = {
   'ai-verifiable-workflow': MathTab.AI_TUTOR,
 };
 
+const MATH_NUMBER_COMPETENCY_ID = 'math-number-sense';
+
 const App: React.FC = () => {
   const [currentUser, setCurrentUser] = useState<UserProfile | null>(null);
   const [learnerState, setLearnerState] = useState<LearnerState | null>(null);
+  const [activeRetentionReview, setActiveRetentionReview] = useState<string | null>(null);
   const [activeTab, setActiveTab] = useState<MathTab>(MathTab.FRACTIONS);
   const [currentThemeIdx, setCurrentThemeIdx] = useState(0);
   const [rotationDuration, setRotationDuration] = useState(120);
@@ -142,6 +147,7 @@ const App: React.FC = () => {
 
   const logout = () => {
     localStorage.removeItem('bmu_active_session');
+    setActiveRetentionReview(null);
     setLearnerState(null);
     setCurrentUser(null);
   };
@@ -164,7 +170,7 @@ const App: React.FC = () => {
       const event = createPracticeAttemptEvent({
         learnerId: current.learnerId,
         moduleId: 'math-foundations',
-        competencyId: 'math-number-sense',
+        competencyId: MATH_NUMBER_COMPETENCY_ID,
         activityId: attempt.challengeId,
         score,
         metadata: {
@@ -181,9 +187,40 @@ const App: React.FC = () => {
     });
   };
 
+  const recordFractionRetentionReview = (score: number, variantIds: string[]) => {
+    const competency = competencyById.get(MATH_NUMBER_COMPETENCY_ID);
+    if (!competency?.retention) return;
+
+    setLearnerState((current) => {
+      if (!current) return current;
+
+      const event = createRetentionReviewEvent({
+        learnerId: current.learnerId,
+        moduleId: 'math-foundations',
+        competencyId: MATH_NUMBER_COMPETENCY_ID,
+        reviewId: `${MATH_NUMBER_COMPETENCY_ID}:${new Date().toISOString().slice(0, 7)}`,
+        score,
+        minimumScore: competency.retention.minReviewScore,
+        variantIds,
+        metadata: {
+          kind: competency.retention.kind,
+          simplerThanInitial: competency.retention.simplerThanInitial,
+        },
+      });
+
+      return applyLearningEvent(current, event);
+    });
+  };
+
   if (!currentUser) {
     return <NeocyberAuth onLogin={setCurrentUser} />;
   }
+
+  const mathNumberCompetency = competencyById.get(MATH_NUMBER_COMPETENCY_ID);
+  const mathRetention =
+    learnerState && mathNumberCompetency
+      ? retentionStatus(learnerState, mathNumberCompetency)
+      : null;
 
   const navItems = {
     Alumno: [
@@ -276,7 +313,10 @@ const App: React.FC = () => {
           {navItems[currentUser.role as UserRole].map((item) => (
             <button
               key={item.id}
-              onClick={() => setActiveTab(item.id as MathTab)}
+              onClick={() => {
+                setActiveRetentionReview(null);
+                setActiveTab(item.id as MathTab);
+              }}
               className={`px-6 py-3 rounded-2xl text-[10px] font-black tracking-widest transition-all ${activeTab === item.id ? 'accent-bg text-contrast scale-105 shadow-xl' : 'text-slate-500 hover:text-white hover:bg-white/5'}`}
             >
               {item.label}
@@ -320,9 +360,35 @@ const App: React.FC = () => {
 
       <main className="max-w-7xl mx-auto p-6 lg:p-12 min-h-[70vh]">
         <div className="animate-in fade-in slide-in-from-bottom-8 duration-1000">
-          {activeTab === MathTab.MASTERY_MAP && learnerState && (
-            <MasteryMap learnerState={learnerState} onLaunchModule={launchModule} />
+          {activeTab === MathTab.MASTERY_MAP && learnerState && activeRetentionReview === MATH_NUMBER_COMPETENCY_ID && mathNumberCompetency?.retention && (
+            <FractionRetentionReview
+              minimumScore={mathNumberCompetency.retention.minReviewScore}
+              onComplete={recordFractionRetentionReview}
+              onCancel={() => setActiveRetentionReview(null)}
+            />
           )}
+
+          {activeTab === MathTab.MASTERY_MAP && learnerState && !activeRetentionReview && (
+            <div className="space-y-6">
+              {mathRetention?.due && (
+                <div className="glass p-6 rounded-[2rem] border border-amber-400/20 bg-amber-400/5 flex flex-col md:flex-row md:items-center justify-between gap-5">
+                  <div>
+                    <span className="text-[9px] font-black uppercase tracking-[0.35em] text-amber-300">Mantenimiento listo</span>
+                    <p className="text-white font-black text-lg mt-1">Sentido numérico necesita un microrepaso.</p>
+                    <p className="text-slate-500 text-xs mt-1">4 preguntas nuevas • corto • sin borrar tu dominio si fallas.</p>
+                  </div>
+                  <button
+                    onClick={() => setActiveRetentionReview(MATH_NUMBER_COMPETENCY_ID)}
+                    className="px-6 py-4 rounded-2xl accent-bg text-black text-[10px] font-black uppercase tracking-widest hover:scale-105 transition-transform"
+                  >
+                    Iniciar repaso
+                  </button>
+                </div>
+              )}
+              <MasteryMap learnerState={learnerState} onLaunchModule={launchModule} />
+            </div>
+          )}
+
           {activeTab === MathTab.MASTERY_MAP && !learnerState && (
             <div className="glass p-12 rounded-[3rem] text-center text-slate-500 font-black uppercase tracking-widest">
               Inicializando estado académico...
