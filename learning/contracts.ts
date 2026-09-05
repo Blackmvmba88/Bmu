@@ -49,6 +49,7 @@ export interface PracticeProgress {
   successfulAttempts: number;
   currentStreak: number;
   bestStreak: number;
+  variantIds: string[];
   lastScore?: number;
 }
 
