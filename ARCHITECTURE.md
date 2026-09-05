@@ -1,6 +1,6 @@
 # 🏛️ BlackMamba University — Canonical Architecture
 
-BMU is a modular academic platform. The frontend is only one layer of the system; curriculum, learning state, telemetry, AI, labs and external BlackMamba capabilities should communicate through explicit contracts.
+BMU is a modular academic platform. The frontend is only one layer of the system; curriculum, learning state, telemetry, AI, labs and external BlackMamba capabilities communicate through explicit contracts.
 
 ## 1. Product shell
 
@@ -12,47 +12,86 @@ Current implementation:
 - Local-first profile persistence through `localStorage`.
 - Visual theming through CSS custom properties.
 
-The shell should remain thin: navigation, layout, session state and composition. Domain logic should live in modules/services rather than accumulating in `App.tsx`.
+The shell should remain thin: navigation, layout, session state and composition. Domain logic belongs in modules/services rather than accumulating in `App.tsx`.
 
 ## 2. Canonical curriculum layer
 
-`curriculum/registry.json` is the first machine-readable source of truth for BMU curriculum domains and advanced tracks.
+`curriculum/registry.json` is the machine-readable source of truth for BMU domains, advanced tracks, competencies, prerequisite edges, mastery thresholds and module targets.
 
-Future module manifests should reference curriculum IDs instead of duplicating domain names in navigation, mastery maps and components.
+The registry is currently schema v2.
 
-Target contract:
+Canonical module contract:
 
 ```ts
-interface BMUModuleManifest {
+interface ModuleDefinition {
   id: string;
   title: string;
   domainId: string;
-  version: string;
+  trackId?: string;
   maturity: 'experimental' | 'candidate' | 'stable';
-  capabilities: string[];
-  telemetryEvents: string[];
+  competencyIds: string[];
+  prerequisites: CompetencyRequirement[];
   artifactTypes: string[];
 }
 ```
 
+Navigation, mastery maps and future module manifests should converge on registry IDs instead of duplicating domain names or progression rules.
+
 ## 3. Learning and mastery layer
 
-The mastery system should eventually consume normalized learning events rather than direct component state.
-
-Target flow:
+The first executable learning-domain slice now lives under `learning/`.
 
 ```text
 module interaction
-  → learning event
-  → validation/reducer
-  → mastery state
-  → mentor/learner views
+  → BMULearningEvent
+  → learning/engine.ts
+  → LearnerState
+  → mastery / eligibility projection
+  → learner + mentor views
   → portfolio evidence
 ```
 
-Mastery claims should be explainable from stored evidence: attempts, assessment results, artifacts, or mentor review.
+Implemented contracts include:
 
-## 4. Telemetry layer
+- versioned learner state;
+- competency progress with evidence references;
+- completed modules;
+- portfolio artifacts;
+- processed event IDs for idempotent replay;
+- explicit prerequisite requirements;
+- deterministic `locked / learning / mastered` projection.
+
+Mastery claims must remain explainable from stored evidence: attempts, assessments, artifacts or mentor review.
+
+The v0.1 projection is intentionally conservative: attempts alone cannot certify full mastery and unscored artifacts can establish progress but not final mastery.
+
+See `docs/LEARNING_ENGINE.md`.
+
+## 4. Journey layer
+
+BMU uses Kodex as an upstream journey capability through `adapters/kodexJourney.ts`.
+
+Canonical route:
+
+```text
+guide → lab → course → portfolio → showcase → review-gate
+```
+
+The adapter receives BMU-owned learner state, target module and target competencies, then produces a non-mutating journey request.
+
+```text
+BMU LearnerState
+      ↓
+Kodex adapter
+      ↓
+Kodex journey proposal
+      ↓
+normalized BMUJourneyPlan
+```
+
+Kodex does not own mastery state. Its adapter boundary declares `mutation: none`; evidence must return through BMU learning events before it can change a learner projection.
+
+## 5. Telemetry layer
 
 Current telemetry concepts include response time, attempts, errors, navigation and active/idle behavior.
 
@@ -62,28 +101,16 @@ Production requirements:
 - minimum necessary data;
 - explicit retention policy;
 - separation of identity and event streams where practical;
-- no medical/neurological/biometric diagnosis from ordinary interaction data;
+- no medical, neurological or biometric diagnosis from ordinary interaction data;
 - role-based access to learner analytics.
 
-Example future event:
+Canonical learning-event shape now exists in `learning/contracts.ts`.
 
-```ts
-interface BMULearningEvent {
-  schemaVersion: 1;
-  eventId: string;
-  occurredAt: string;
-  learnerId: string;
-  moduleId: string;
-  type: 'attempt' | 'complete' | 'hint' | 'artifact' | 'assessment';
-  payload: Record<string, unknown>;
-}
-```
+## 6. AI layer
 
-## 5. AI layer
+The current prototype calls Google GenAI from browser-oriented code and uses structured responses for some tutoring flows.
 
-The current prototype calls Google GenAI from browser-oriented code and uses structured JSON responses for some tutoring flows.
-
-That is useful for experimentation, but production architecture must be:
+That remains useful for experimentation, but production architecture must be:
 
 ```text
 Browser / BMU client
@@ -95,16 +122,17 @@ policy + auth + rate limits + logging
 model provider(s)
 ```
 
-Provider credentials must not be treated as secrets if they are injected into a browser bundle. See `SECURITY.md`.
+Provider credentials must not be treated as secrets when injected into a browser bundle. See `SECURITY.md`.
 
-The AI layer should be provider-agnostic at the BMU contract boundary so models can change without rewriting academic modules.
+The AI contract boundary should remain provider-agnostic so model providers can change without rewriting academic modules.
 
-## 6. Persistence layer
+## 7. Persistence layer
 
 Current state:
 
 - profiles/preferences: `localStorage`;
-- prototype is offline-first and serverless.
+- prototype is offline-first and serverless;
+- learning engine is currently pure and storage-agnostic.
 
 Target split:
 
@@ -115,11 +143,11 @@ Target split:
 - artifact/portfolio store;
 - optional synchronization service.
 
-Local-first behavior can remain useful, but shared deployments need authenticated persistence and conflict/version handling.
+The next persistence slice should version serialized `LearnerState` and preserve event history so projections can be rebuilt and audited.
 
-## 7. External capability adapters
+## 8. External capability adapters
 
-BMU does not need to absorb every BlackMamba repository physically.
+BMU does not absorb every BlackMamba repository physically.
 
 External systems integrate through adapters:
 
@@ -141,15 +169,23 @@ Each adapter should declare:
 
 See `docs/ECOSYSTEM_MAP.md`.
 
-## 8. Validation and release gates
+## 9. Validation and release gates
 
-Minimum code gate:
+Minimum repository gate:
 
 ```bash
 npm run check
 ```
 
-which performs TypeScript type checking and a production Vite build.
+which executes:
+
+```text
+curriculum graph validation
+→ TypeScript type checking
+→ production Vite build
+```
+
+The curriculum validator rejects duplicate IDs, broken references, invalid mastery thresholds, self-dependencies, prerequisite cycles and incomplete module contracts.
 
 Broader migration gate:
 
@@ -157,17 +193,18 @@ Broader migration gate:
 READ → PLAN → WRITE → READ BACK → COMPARE → VALIDATE
 ```
 
-Large integrations should not delete or overwrite their source implementation until the BMU replacement passes its own tests and comparison checks.
+Large integrations should not delete or overwrite source implementations until the BMU replacement passes its own tests and comparison checks.
 
-## 9. Immediate architecture debt
+## 10. Immediate architecture debt
 
 Known areas to normalize next:
 
-1. `App.tsx` currently owns too much session, theme, idle-AI and navigation behavior.
-2. Several components exist but are not represented consistently in navigation or mastery taxonomy.
-3. A duplicate `components/App.tsx` exists and must be compared before removal.
-4. AI provider access is coupled directly to frontend code.
-5. Curriculum names are duplicated across code/docs and should converge on registry IDs.
+1. `App.tsx` still owns too much session, theme, idle-AI and navigation behavior.
+2. `components/MasteryMap.tsx` still uses hard-coded mastery nodes instead of the new learner projection.
+3. Several interactive components are not yet represented consistently in the curriculum/module taxonomy.
+4. AI provider access is still coupled directly to frontend code.
+5. Learner-state persistence and event-history storage are not implemented yet.
 6. Shared production persistence and authorization are not implemented yet.
+7. The hosted GitHub Actions runner currently fails before assigning a runner, so full repository CI has not executed successfully on this branch.
 
-These are consolidation targets, not reasons to discard the current prototype.
+The former duplicate `components/App.tsx` has already been compared and removed from the consolidation branch; it is no longer an open architecture item.
