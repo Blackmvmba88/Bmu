@@ -98,9 +98,12 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
   const nextChallenge = () => {
     const nextIndex = (challengeIndex + 1) % CHALLENGES.length;
     const next = CHALLENGES[nextIndex];
+    const starterDenominator = Math.max(2, next.numerator, next.denominator - 1);
+    const starterNumerator = Math.max(1, Math.min(next.numerator - 1, starterDenominator));
+
     setChallengeIndex(nextIndex);
-    setSlicesSelected(Math.max(1, Math.min(next.numerator - 1, next.denominator)));
-    setTotalSlices(next.denominator === totalSlices ? Math.max(2, next.denominator - 1) : totalSlices);
+    setTotalSlices(starterDenominator);
+    setSlicesSelected(starterNumerator);
     setChallengeResult(null);
   };
 
