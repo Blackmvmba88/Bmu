@@ -139,13 +139,12 @@ const masteryCandidate = (
   evidenceType: string,
   score?: number,
   metadata?: Record<string, unknown>,
-): { mastery: number; practice?: PracticeProgress; lastReviewAt?: string } => {
+): { mastery: number; practice?: PracticeProgress } => {
   if (evidenceType === 'attempt' && typeof score === 'number') {
     const practice = updatePractice(current, score, variantIdFrom(metadata));
     return {
       mastery: Math.max(current.mastery, practiceMastery(practice)),
       practice,
-      lastReviewAt: current.lastReviewAt,
     };
   }
 
@@ -153,7 +152,6 @@ const masteryCandidate = (
     return {
       mastery: Math.max(current.mastery, clamp01(score)),
       practice: current.practice,
-      lastReviewAt: current.lastReviewAt,
     };
   }
 
@@ -161,15 +159,26 @@ const masteryCandidate = (
     return {
       mastery: Math.max(current.mastery, 0.6),
       practice: current.practice,
-      lastReviewAt: current.lastReviewAt,
     };
   }
 
   return {
     mastery: current.mastery,
     practice: current.practice,
-    lastReviewAt: current.lastReviewAt,
   };
+};
+
+const retentionReviewPassed = (metadata?: Record<string, unknown>): boolean =>
+  metadata?.retentionReview === true && metadata?.reviewPassed === true;
+
+const demonstratedKnowledge = (
+  evidenceType: string,
+  score?: number,
+  metadata?: Record<string, unknown>,
+): boolean => {
+  if (retentionReviewPassed(metadata)) return true;
+  if (evidenceType === 'mentor-review' && typeof score !== 'number') return true;
+  return typeof score === 'number' && clamp01(score) >= SUCCESS_SCORE;
 };
 
 export const applyLearningEvent = (
@@ -198,11 +207,20 @@ export const applyLearningEvent = (
         evidence.score,
         evidence.metadata,
       );
+      const reviewPassed = retentionReviewPassed(evidence.metadata);
+      const demonstrated = demonstratedKnowledge(
+        evidence.type,
+        evidence.score,
+        evidence.metadata,
+      );
 
       competencies[evidence.competencyId] = {
         mastery: next.mastery,
         practice: next.practice,
-        lastReviewAt: next.lastReviewAt,
+        lastDemonstratedAt: demonstrated
+          ? event.occurredAt
+          : current.lastDemonstratedAt,
+        lastReviewAt: reviewPassed ? event.occurredAt : current.lastReviewAt,
         evidenceIds: current.evidenceIds.includes(evidence.id)
           ? current.evidenceIds
           : [...current.evidenceIds, evidence.id],
@@ -247,7 +265,11 @@ export const retentionStatus = (
     return { competencyId: competency.id, required: true, due: false };
   }
 
-  const anchor = progress.lastReviewAt ?? progress.lastUpdatedAt;
+  const anchor =
+    progress.lastReviewAt ??
+    progress.lastDemonstratedAt ??
+    progress.lastUpdatedAt;
+
   if (!anchor) {
     return { competencyId: competency.id, required: true, due: true };
   }
