@@ -1,5 +1,5 @@
 {
-  "schemaVersion": 1,
+  "schemaVersion": 2,
   "university": "BlackMamba University",
   "philosophy": [
     "Audacia",
@@ -61,6 +61,157 @@
       "topics": ["educational foundations", "teaching tools", "curriculum design", "publishing"]
     }
   ],
+  "competencies": [
+    {
+      "id": "ethics-knowledge",
+      "name": "Ética del conocimiento",
+      "domainId": "cognition",
+      "description": "Distingue evidencia, inferencia, incertidumbre y responsabilidad al producir o comunicar conocimiento.",
+      "prerequisites": [],
+      "masteryThreshold": 0.8
+    },
+    {
+      "id": "math-number-sense",
+      "name": "Sentido numérico",
+      "domainId": "math",
+      "description": "Opera cantidades, proporciones, fracciones y escalas con interpretación física y cotidiana.",
+      "prerequisites": [],
+      "masteryThreshold": 0.8
+    },
+    {
+      "id": "math-algebra-foundations",
+      "name": "Fundamentos de álgebra",
+      "domainId": "math",
+      "description": "Modela relaciones mediante variables, expresiones, ecuaciones y funciones elementales.",
+      "prerequisites": [
+        { "competencyId": "math-number-sense", "minimumMastery": 0.7 }
+      ],
+      "masteryThreshold": 0.8
+    },
+    {
+      "id": "physics-mechanics",
+      "name": "Mecánica fundamental",
+      "domainId": "physics",
+      "description": "Relaciona posición, movimiento, fuerza, masa, energía y conservación mediante modelos verificables.",
+      "prerequisites": [
+        { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
+      ],
+      "masteryThreshold": 0.82
+    },
+    {
+      "id": "electronics-circuit-foundations",
+      "name": "Fundamentos de circuitos",
+      "domainId": "electronics",
+      "description": "Analiza voltaje, corriente, resistencia, potencia y topologías básicas de circuitos.",
+      "prerequisites": [
+        { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
+      ],
+      "masteryThreshold": 0.82
+    },
+    {
+      "id": "control-feedback-foundations",
+      "name": "Fundamentos de control y realimentación",
+      "domainId": "control",
+      "description": "Formula estados, entradas, salidas, error y lazos de realimentación para sistemas dinámicos sencillos.",
+      "prerequisites": [
+        { "competencyId": "physics-mechanics", "minimumMastery": 0.72 },
+        { "competencyId": "electronics-circuit-foundations", "minimumMastery": 0.72 }
+      ],
+      "masteryThreshold": 0.85
+    },
+    {
+      "id": "ai-working-with-models",
+      "name": "Trabajo verificable con IA",
+      "domainId": "cognition",
+      "description": "Usa modelos de IA como herramientas con objetivos explícitos, verificación, trazabilidad y límites claros.",
+      "prerequisites": [
+        { "competencyId": "ethics-knowledge", "minimumMastery": 0.75 }
+      ],
+      "masteryThreshold": 0.85
+    },
+    {
+      "id": "project-verifiable-evidence",
+      "name": "Evidencia verificable de proyecto",
+      "domainId": "cognition",
+      "description": "Convierte trabajo práctico en artefactos reproducibles, evidencia de validación y una explicación defendible.",
+      "prerequisites": [
+        { "competencyId": "ethics-knowledge", "minimumMastery": 0.75 }
+      ],
+      "masteryThreshold": 0.85
+    }
+  ],
+  "modules": [
+    {
+      "id": "cimientos-knowledge-practice",
+      "title": "Cimientos: conocimiento, responsabilidad y evidencia",
+      "domainId": "cognition",
+      "maturity": "candidate",
+      "competencyIds": ["ethics-knowledge", "project-verifiable-evidence"],
+      "prerequisites": [],
+      "artifactTypes": ["reflection", "evidence-log"]
+    },
+    {
+      "id": "math-foundations",
+      "title": "Matemáticas: cantidad a modelo",
+      "domainId": "math",
+      "maturity": "candidate",
+      "competencyIds": ["math-number-sense", "math-algebra-foundations"],
+      "prerequisites": [],
+      "artifactTypes": ["worked-problem-set", "model-notebook"]
+    },
+    {
+      "id": "physics-mechanics-lab",
+      "title": "Física: mecánica medible",
+      "domainId": "physics",
+      "maturity": "candidate",
+      "competencyIds": ["physics-mechanics"],
+      "prerequisites": [
+        { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
+      ],
+      "artifactTypes": ["lab-report", "measurement-dataset"]
+    },
+    {
+      "id": "electronics-circuits-lab",
+      "title": "Electrónica: circuitos verificables",
+      "domainId": "electronics",
+      "maturity": "candidate",
+      "competencyIds": ["electronics-circuit-foundations"],
+      "prerequisites": [
+        { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
+      ],
+      "artifactTypes": ["circuit-schematic", "measurement-log"]
+    },
+    {
+      "id": "control-feedback-lab",
+      "title": "Control: estados, error y realimentación",
+      "domainId": "control",
+      "maturity": "experimental",
+      "competencyIds": ["control-feedback-foundations"],
+      "prerequisites": [
+        { "competencyId": "physics-mechanics", "minimumMastery": 0.72 },
+        { "competencyId": "electronics-circuit-foundations", "minimumMastery": 0.72 }
+      ],
+      "artifactTypes": ["simulation", "controller-report"]
+    },
+    {
+      "id": "ai-verifiable-workflow",
+      "title": "IA: de prompt a trabajo verificable",
+      "domainId": "cognition",
+      "trackId": "ai-neural",
+      "maturity": "candidate",
+      "competencyIds": ["ai-working-with-models", "project-verifiable-evidence"],
+      "prerequisites": [
+        { "competencyId": "ethics-knowledge", "minimumMastery": 0.75 }
+      ],
+      "artifactTypes": ["prompt-log", "validation-report", "portfolio-project"]
+    }
+  ],
+  "journey": {
+    "adapter": "Blackmvmba88/Kodex",
+    "route": ["guide", "lab", "course", "portfolio", "showcase", "review-gate"],
+    "mutation": "none",
+    "masteryRequiresEvidence": true
+  },
   "multidisciplinary": {
     "enabled": true,
     "principle": "Permitir rutas que crucen múltiples dominios y produzcan proyectos verificables.",
