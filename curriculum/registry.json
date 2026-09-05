@@ -76,7 +76,13 @@
       "domainId": "math",
       "description": "Opera cantidades, proporciones, fracciones y escalas con interpretación física y cotidiana.",
       "prerequisites": [],
-      "masteryThreshold": 0.8
+      "masteryThreshold": 0.8,
+      "retention": {
+        "reviewEveryDays": 30,
+        "minReviewScore": 0.7,
+        "kind": "micro-quiz",
+        "simplerThanInitial": true
+      }
     },
     {
       "id": "math-algebra-foundations",
@@ -86,7 +92,13 @@
       "prerequisites": [
         { "competencyId": "math-number-sense", "minimumMastery": 0.7 }
       ],
-      "masteryThreshold": 0.8
+      "masteryThreshold": 0.8,
+      "retention": {
+        "reviewEveryDays": 30,
+        "minReviewScore": 0.7,
+        "kind": "micro-quiz",
+        "simplerThanInitial": true
+      }
     },
     {
       "id": "physics-mechanics",
@@ -96,7 +108,13 @@
       "prerequisites": [
         { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
       ],
-      "masteryThreshold": 0.82
+      "masteryThreshold": 0.82,
+      "retention": {
+        "reviewEveryDays": 30,
+        "minReviewScore": 0.72,
+        "kind": "challenge",
+        "simplerThanInitial": true
+      }
     },
     {
       "id": "electronics-circuit-foundations",
@@ -106,7 +124,13 @@
       "prerequisites": [
         { "competencyId": "math-algebra-foundations", "minimumMastery": 0.7 }
       ],
-      "masteryThreshold": 0.82
+      "masteryThreshold": 0.82,
+      "retention": {
+        "reviewEveryDays": 30,
+        "minReviewScore": 0.72,
+        "kind": "challenge",
+        "simplerThanInitial": true
+      }
     },
     {
       "id": "control-feedback-foundations",
@@ -117,7 +141,13 @@
         { "competencyId": "physics-mechanics", "minimumMastery": 0.72 },
         { "competencyId": "electronics-circuit-foundations", "minimumMastery": 0.72 }
       ],
-      "masteryThreshold": 0.85
+      "masteryThreshold": 0.85,
+      "retention": {
+        "reviewEveryDays": 30,
+        "minReviewScore": 0.75,
+        "kind": "challenge",
+        "simplerThanInitial": true
+      }
     },
     {
       "id": "ai-working-with-models",
