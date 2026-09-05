@@ -15,7 +15,7 @@ normalized BMU learning events
         ↓
 learning/engine.ts
         ↓
-repetition + accuracy + variant diversity + consistency
+accuracy × (repetition + variant diversity + consistency)
         ↓
 LearnerState + mastery projection + portfolio evidence
         ↓
@@ -48,20 +48,28 @@ The objective is not memorizing an answer. It is recognizing and executing the u
 
 ## Repetition-first mastery
 
-Practice mastery currently combines four signals:
+Practice mastery combines four signals:
 
 - **accuracy** — cumulative quality across attempts;
 - **repetition** — enough attempts to make performance stable;
 - **variant diversity** — distinct versions of the same concept;
 - **consistency** — sustained successful streaks.
 
-Current projection weights:
+Accuracy gates the other signals. Repetition, diversity and streaks can strengthen demonstrated understanding, but cannot create mastery from repeated failure alone.
+
+The current stability envelope is:
 
 ```text
-40% accuracy
+40% base once accuracy exists
 20% repetition volume
 25% variant diversity
 15% consistency / best streak
+```
+
+Final practice mastery is:
+
+```text
+mastery = accuracy × stability
 ```
 
 Reference targets are currently 8 attempts, 5 distinct variants and a best streak of 4 successful attempts. These are projection parameters, not universal pedagogical constants, and can be calibrated later from real BMU usage.
