@@ -42,13 +42,11 @@ const practiceMastery = (practice: PracticeProgress): number => {
   const repetition = clamp01(practice.attempts / TARGET_ATTEMPTS);
   const diversity = clamp01(practice.variantIds.length / TARGET_VARIANTS);
   const consistency = clamp01(practice.bestStreak / TARGET_STREAK);
-
-  return clamp01(
-    accuracy * 0.4 +
-      repetition * 0.2 +
-      diversity * 0.25 +
-      consistency * 0.15,
+  const stability = clamp01(
+    0.4 + repetition * 0.2 + diversity * 0.25 + consistency * 0.15,
   );
+
+  return clamp01(accuracy * stability);
 };
 
 const updatePractice = (
