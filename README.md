@@ -1,110 +1,130 @@
+# 🐍 BlackMamba University (BMU)
 
-# 🐍 BlackMamba University (BMU) - Ecosistema Académico v7.0
-> **Plataforma Académica de Alto Rendimiento para mentes de 14-18 años.**
+> **Canonical academic platform for the BlackMamba ecosystem.**
 
-## 🏛️ ¿Qué es BMU?
-BMU ha evolucionado de una aplicación de estudio a un **Ecosistema Cognitivo**. Es una arquitectura de software diseñada para la maestría técnica en ciencias exactas (Matemáticas, Física, Química, Ingeniería) y el desarrollo de habilidades cognitivas superiores.
+BMU is evolving from a single study application into a modular academic operating system: adaptive learning, technical labs, multidisciplinary curriculum, mastery tracking, learner portfolios, telemetry, AI assistance, and integrations with the wider BlackMamba software ecosystem.
 
-### 🧠 Fundamento Pedagógico
-BMU fusiona **Flow State** (Csikszentmihalyi) + **Zona de Desarrollo Próximo** (Vygotsky) + **Práctica Deliberada** (Ericsson) mediante telemetría cognitiva en tiempo real. El sistema adapta la dificultad automáticamente para mantener el equilibrio perfecto entre desafío y habilidad, eliminando la frustración y el aburrimiento. No es solo "aprender más rápido", es **aprender en el estado mental óptimo**.
+## Current product core
 
-## 🎯 El Sistema en 10 Segundos
+The repository already contains a working React/TypeScript application with modules for mathematics, physics, chemistry, circuits, AI tutoring, mastery mapping, planning, games/labs, biology, space, and role-aware interfaces.
+
+The current learning loop is:
+
+```text
+Learner chooses a module
+        ↓
+Interactive problem / simulation
+        ↓
+Attempt + timing + error signals
+        ↓
+Mastery / telemetry update
+        ↓
+Adaptive explanation or next task
+        ↓
+Artifact / progress evidence
 ```
-1. Alumno abre BMU → Selecciona módulo (Fracciones, Física, Circuitos, etc.)
-2. Sistema presenta problema adaptativo basado en nivel de maestría
-3. Alumno interactúa con visualizaciones dinámicas y slider controls
-4. Cognitive Tracker registra: tiempo de respuesta, patrones de error, engagement
-5. IA (Gemini) ajusta siguiente problema en tiempo real
-6. Mentor recibe dashboard con insights pedagógicos
-7. Loop continúa → Estudiante entra en Flow State → Maestría incremental
+
+## Pedagogical direction
+
+BMU combines three useful ideas without treating them as magic formulas:
+
+- challenge should track learner capability closely enough to preserve productive engagement;
+- instruction should provide scaffolding just beyond what the learner can do alone;
+- difficult skills improve through deliberate, measurable practice and feedback.
+
+The system should use telemetry to adapt learning experiences, not to make medical, neurological, or biometric diagnoses.
+
+## Canonical ecosystem rule
+
+`Blackmvmba88/Bmu` is now the source of truth for the academic product and its contracts.
+
+Related repositories remain valuable, but they contribute capabilities through documented adapters instead of independently redefining BMU:
+
+- **XarvisCore** → curriculum research, GeoMaster, sovereign-university concepts, knowledge engines.
+- **Kodex** → technical labs, profession routing, portfolio artifacts, simulations.
+- **REALIDADAUMENTADA** → AR-guided training and classroom overlays.
+
+See [`docs/ECOSYSTEM_MAP.md`](./docs/ECOSYSTEM_MAP.md).
+
+## Curriculum
+
+BMU now has a machine-readable canonical curriculum registry at [`curriculum/registry.json`](./curriculum/registry.json).
+
+It includes:
+
+- **Cimientos de Soberanía**: practical life foundations, responsibility, ethics, autonomy, and early interest-driven specialization.
+- Core STEM domains: mathematics, physics, chemistry, electronics, control, biology, astronomy, geography, and cognition.
+- Advanced tracks in AI, engineering platforms, cybersecurity, data science, creative development, and teaching.
+- Multidisciplinary paths that are expected to produce verifiable projects and portfolio artifacts.
+
+## Roles
+
+BMU currently models four roles:
+
+- **Alumno** — learns, experiments, solves and builds.
+- **Mentor** — reviews progress and helps guide learning strategy.
+- **Maestro** — authors and calibrates learning modules.
+- **Creador** — maintains system-level curriculum and platform capabilities.
+
+These roles are product permissions and learning responsibilities; they should eventually be enforced server-side for shared deployments.
+
+## Engineering stack
+
+- React 19
+- TypeScript 5.8
+- Vite 6
+- Recharts
+- Google GenAI client in the current prototype
+- `localStorage` for current offline-first profile persistence
+
+### Local commands
+
+```bash
+npm ci
+npm run dev
+npm run typecheck
+npm run build
+npm run check
 ```
 
-## 📚 Módulos Operativos
-### Disponibles (v7.0)
-- **🔢 Fracciones Visuales**: Representación geométrica de operaciones fraccionarias
-- **📐 Matemáticas Avanzadas**: Cálculo, álgebra lineal, funciones complejas
-- **⚛️ Física BMU**: Mecánica, cinemática, dinámica con simulaciones interactivas
-- **🧪 Química BMU**: Tabla periódica, reacciones, estequiometría
-- **⚡ Circuitos Mecatrónicos**: Diseño de circuitos DC, componentes Arduino
-- **🎮 Ingeniería de Control**: Feedback loops, sensores, actuadores
-- **🧠 Cognición**: Análisis de patrones de aprendizaje y sesgo cognitivo
-- **🤖 Tutor IA**: BlackMamba AI para resolución de problemas en lenguaje natural
-- **🗺️ Mapa de Maestría**: Árbol de habilidades tipo videojuego con progresión no-lineal
-- **📊 Telemetría**: Dashboard de métricas cognitivas para el Mentor
+`npm run check` is the canonical local validation gate: TypeScript typecheck followed by a production Vite build.
 
-### En Desarrollo (FASE 6-7)
-- Laboratorio de Electrónica DC
-- Integración de API de Música (Frecuencias y Ondas)
-- Misiones Multi-Módulo (ej: "Construye un cohete: Química + Física")
+## Validation
 
-## 👥 Roles Institucionales
-1. **Alumno (Diego.sys)**: El ejecutor. Enfocado en la resolución de problemas visuales y el estado de "Flow".
-2. **Mentor (Pao.mgmt)**: La estratega. Utiliza telemetría cognitiva para guiar el aprendizaje sin fricción.
-3. **Maestro/Creador (Neocyber1)**: El arquitecto. Controla los parámetros fundamentales de la realidad y el currículo.
+A GitHub Actions workflow now runs the same validation gate on pushes and pull requests to `main`.
 
-## 🛠️ Stack de Ingeniería
-### Frontend
-- **React 19** + **TypeScript 5.8**: Type-safe component architecture
-- **Vite 6**: Fast development server with HMR (Hot Module Replacement)
-- **Recharts 3.6**: Data visualization library for telemetry dashboards
+The consolidation strategy is deliberately incremental:
 
-### Motor Visual
-- **Sunset Engine v4**: Sistema propietario de CSS animado (60s rotation cycles)
-  - Utiliza CSS Custom Properties para transiciones fluidas
-  - Implementa glassmorphism con `backdrop-filter: blur(20px)`
-  - Auto-rotación de paletas de color cada 120s (configurable por usuario)
+1. establish a canonical BMU repository;
+2. validate the existing product before large code moves;
+3. normalize curriculum and module contracts;
+4. connect external BlackMamba capabilities through adapters;
+5. remove duplicate/stale implementations only after replacement paths are proven.
 
-### IA Core
-- **Google Gemini 3 Flash Pro**: Inferencia pedagógica y generación de contenido adaptativo
-  - API: `@google/genai` (npm package v1.35.0)
-  - Uso: Respuestas estructuradas con JSON Schema para garantizar formato consistente
-  - Modelos utilizados:
-    - `gemini-3-flash-preview`: Tutor de texto y explicaciones conceptuales
-    - `gemini-2.5-flash-image`: Generación de esquemáticos técnicos (circuitos, diagramas)
+## Security boundary
 
-### Persistencia
-- **BMU_LocalSync**: Sistema de guardado automático basado en `localStorage`
-  - Guarda: progreso de usuario, configuración de colores, preferencias de rotación
-  - Estructura: `bmu_profile_{email}` para multi-usuario local
-  - No requiere servidor backend (diseño offline-first)
+The current prototype can expose a model-provider API key to the browser bundle through Vite configuration. That is **not** a production-safe credential boundary.
 
-### Telemetría
-- **BMU_Cognitive_Tracker**: Monitoreo de interacciones neuronales
-  - Registra: clics, tiempo de permanencia, patrones de navegación, errores, idle time
-  - Estructura de datos: `BMU_Telemetry_Point` con timestamps y metadata contextual
-  - Almacenamiento: localStorage con límite de 1000 eventos (rolling window)
-  - **Señales medidas**:
-    - **Engagement**: tiempo activo vs. idle, frecuencia de interacción
-    - **Precisión**: tasa de error en problemas, intentos antes de corrección
-    - **Velocidad cognitiva**: tiempo de respuesta por tipo de problema
-    - **Patrones de navegación**: módulos visitados, secuencia de aprendizaje
-    - **Flow indicators**: tiempo sostenido en una tarea sin cambio de contexto
+Before any public production deployment, AI calls must move behind a BMU-owned server-side or edge gateway. See [`SECURITY.md`](./SECURITY.md).
 
-## 🗺️ Roadmap Visible
-### ✅ FASE 5: EXPANSIÓN COGNITIVA (Completada)
-- Telemetría Cognitiva básica
-- Sistema de Roles jerárquico (Alumno/Mentor/Maestro/Creador)
-- Persistencia de configuración de colores y preferencias
+## Roadmap
 
-### 🚧 FASE 6: INGENIERÍA DE CONTROL (En Progreso)
-- Módulo de Retroalimentación (Feedback Loops)
-- Simulador de Ruido y Error en sensores
-- Laboratorio de Electrónica DC
+The active consolidation and engineering plan lives in [`ROADMAP.md`](./ROADMAP.md).
 
-### 🔮 FASE 7: MAESTRÍA TOTAL (Planeada)
-- Integración de API de Música (Frecuencias y Ondas)
-- Despliegue de Misiones Multi-Módulo (ej: "Construye un cohete: Química + Física")
-- Certificación Institucional BMU
+The next major milestones are:
 
-**Ver detalles completos en [ROADMAP.md](./ROADMAP.md)**
+- canonicalize existing modules and navigation;
+- import the latest curriculum concepts from XarvisCore as data;
+- define a shared telemetry/event contract;
+- add Kodex lab/portfolio adapters;
+- add GeoMaster and AR adapters;
+- move AI credentials and authorization server-side;
+- build multidisciplinary missions and evidence-based certification.
 
-## 🔗 Referencias Técnicas
-- **Documentación Técnica**: [ARCHITECTURE.md](./ARCHITECTURE.md) - Especificaciones de capas de datos, IA y UI/UX
-- **Alineación Pedagógica**: [BMU-ALIGNMENT.md](./BMU-ALIGNMENT.md) - Estrategia de roles y diseño cognitivo
-- **React 19 Docs**: https://react.dev
-- **Google Gemini API**: https://ai.google.dev/gemini-api/docs
-- **Vite Build Tool**: https://vitejs.dev
-- **Recharts Visualization**: https://recharts.org
+## Project status
+
+BMU is an active prototype / pre-production platform. Some modules are implemented, others are experimental, and several concepts currently live in neighboring repositories. The consolidation work is intended to turn that spread into one coherent system without discarding useful research.
 
 ---
-*Founding Architect: neocyber1 👑*
+
+**BlackMamba University — Audacia · Multidisciplinariedad · Conocimiento real**
