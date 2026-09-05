@@ -56,6 +56,33 @@ const validateRequirement = (requirement, owner) => {
   }
 };
 
+const validateRetention = (retention, owner) => {
+  if (!isObject(retention)) {
+    fail(`${owner} retention must be an object`);
+    return;
+  }
+
+  if (!Number.isInteger(retention.reviewEveryDays) || retention.reviewEveryDays < 1) {
+    fail(`${owner} retention.reviewEveryDays must be an integer >= 1`);
+  }
+
+  if (
+    typeof retention.minReviewScore !== 'number' ||
+    retention.minReviewScore <= 0 ||
+    retention.minReviewScore > 1
+  ) {
+    fail(`${owner} retention.minReviewScore must be in (0, 1]`);
+  }
+
+  if (!['micro-quiz', 'challenge', 'artifact'].includes(retention.kind)) {
+    fail(`${owner} retention.kind is invalid: ${retention.kind}`);
+  }
+
+  if (typeof retention.simplerThanInitial !== 'boolean') {
+    fail(`${owner} retention.simplerThanInitial must be boolean`);
+  }
+};
+
 for (const competency of registry.competencies ?? []) {
   const owner = `competency:${competency.id}`;
   if (!domainIds.has(competency.domainId)) {
@@ -77,6 +104,9 @@ for (const competency of registry.competencies ?? []) {
         fail(`${owner} cannot depend on itself`);
       }
     }
+  }
+  if (competency.retention !== undefined) {
+    validateRetention(competency.retention, owner);
   }
 }
 
@@ -144,6 +174,7 @@ if (errors.length > 0) {
   process.exit(1);
 }
 
+const retentionCount = (registry.competencies ?? []).filter((item) => item.retention).length;
 console.log(
-  `BMU curriculum valid: ${domainIds.size} domains, ${trackIds.size} tracks, ${competencyIds.size} competencies, ${registry.modules.length} modules.`,
+  `BMU curriculum valid: ${domainIds.size} domains, ${trackIds.size} tracks, ${competencyIds.size} competencies, ${registry.modules.length} modules, ${retentionCount} retention policies.`,
 );
