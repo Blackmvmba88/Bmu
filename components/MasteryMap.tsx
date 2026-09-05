@@ -5,8 +5,8 @@ import { competencies, modules } from '../learning/curriculum';
 import {
   competencyStatus,
   masteredCompetencyIds,
-  moduleEligibility,
   recommendNextModules,
+  retentionStatus,
   unmetRequirements,
 } from '../learning/engine';
 
@@ -75,6 +75,7 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
   const [selectedId, setSelectedId] = useState(nodes[0]?.id ?? '');
   const selectedNode = nodes.find((node) => node.id === selectedId) ?? nodes[0] ?? null;
   const selectedDefinition = selectedNode ? definitionById.get(selectedNode.id) : undefined;
+  const selectedProgress = selectedNode ? learnerState.competencies[selectedNode.id] : undefined;
 
   const nextModules = useMemo(
     () => recommendNextModules(learnerState, modules),
@@ -99,24 +100,49 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
     0,
   );
 
+  const variantCount = Object.values(learnerState.competencies).reduce(
+    (sum, progress) => sum + (progress.practice?.variantIds.length ?? 0),
+    0,
+  );
+
+  const dueReviewCount = competencies.filter(
+    (competency) => retentionStatus(learnerState, competency).due,
+  ).length;
+
   const unmet = selectedDefinition
     ? unmetRequirements(learnerState, selectedDefinition.prerequisites)
     : [];
 
+  const selectedRetention = selectedDefinition
+    ? retentionStatus(learnerState, selectedDefinition)
+    : undefined;
+
   const feedback = (() => {
     if (!selectedNode || !selectedDefinition) return 'Selecciona una competencia.';
+
     if (selectedNode.status === 'mastered') {
-      return `Dominio certificado por evidencia. Umbral requerido: ${Math.round(selectedDefinition.masteryThreshold * 100)}%.`;
+      if (selectedRetention?.due) {
+        return `Dominio alcanzado por repetición y evidencia. Toca un repaso corto de mantenimiento; será una variante nueva del mismo conocimiento.`;
+      }
+      if (selectedRetention?.required && selectedRetention.daysRemaining !== undefined) {
+        return `Dominio estable. Próximo microrepaso en ${Math.max(0, selectedRetention.daysRemaining)} días para comprobar retención sin repetir las preguntas originales.`;
+      }
+      return `Dominio respaldado por evidencia y repetición. Umbral requerido: ${Math.round(selectedDefinition.masteryThreshold * 100)}%.`;
     }
+
     if (selectedNode.status === 'locked') {
       const labels = unmet
         .map((requirement) => definitionById.get(requirement.competencyId)?.name ?? requirement.competencyId)
         .join(', ');
       return `Nodo bloqueado por prerequisitos verificables: ${labels || 'requisitos pendientes'}.`;
     }
-    return selectedNode.level > 0
-      ? `Evidencia registrada: ${selectedNode.level}% de dominio proyectado. Continúa reuniendo evidencia hasta ${Math.round(selectedDefinition.masteryThreshold * 100)}%.`
-      : `Competencia disponible. Aún no existe evidencia suficiente para afirmar dominio.`;
+
+    const practice = selectedProgress?.practice;
+    if (practice) {
+      return `Sigue rápido: ${practice.attempts} intentos, ${practice.variantIds.length} variantes y mejor racha de ${practice.bestStreak}. Fallar no borra el aprendizaje; corregir y repetir lo consolida.`;
+    }
+
+    return `Competencia disponible. Empieza a resolver variantes; la maestría crecerá con repetición, precisión y consistencia.`;
   })();
 
   const renderHex = (node: MasteryNode) => {
@@ -167,7 +193,7 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
             MAPA DE <span className="mamba-text">MAESTRÍA</span>
           </h3>
           <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.4em]">
-            Grafo curricular derivado de evidencia • schema learner v1
+            Repetición • variantes • retención • evidencia
           </p>
         </div>
 
@@ -177,8 +203,8 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
             <span className="text-xl font-black text-white">{averageMastery}%</span>
           </div>
           <div className="accent-bg px-6 py-3 rounded-2xl flex flex-col items-center shadow-[0_0_20px_var(--accent-glow)]">
-            <span className="text-[8px] font-black text-black/60 uppercase mb-1">Siguiente ruta</span>
-            <span className="text-xl font-black text-black">{nextModules.length} ABIERTA{nextModules.length === 1 ? '' : 'S'}</span>
+            <span className="text-[8px] font-black text-black/60 uppercase mb-1">Repasos pendientes</span>
+            <span className="text-xl font-black text-black">{dueReviewCount}</span>
           </div>
         </div>
       </div>
@@ -250,10 +276,40 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
                   </div>
                 </div>
 
+                {selectedProgress?.practice && (
+                  <div className="grid grid-cols-2 gap-3">
+                    {[
+                      ['Intentos', selectedProgress.practice.attempts],
+                      ['Variantes', selectedProgress.practice.variantIds.length],
+                      ['Aciertos', selectedProgress.practice.successfulAttempts],
+                      ['Mejor racha', selectedProgress.practice.bestStreak],
+                    ].map(([label, value]) => (
+                      <div key={String(label)} className="bg-white/[0.03] p-4 rounded-2xl border border-white/5">
+                        <span className="text-[8px] text-slate-500 font-black uppercase tracking-widest block">{label}</span>
+                        <span className="text-xl text-white font-black">{value}</span>
+                      </div>
+                    ))}
+                  </div>
+                )}
+
                 <div className="bg-black/30 p-6 rounded-2xl border border-white/5 space-y-4">
                   <h5 className="text-[9px] font-black text-slate-500 uppercase tracking-widest">Proyección explicable</h5>
                   <p className="text-xs text-slate-300 italic leading-relaxed">{feedback}</p>
                 </div>
+
+                {selectedDefinition.retention && (
+                  <div className={`p-5 rounded-2xl border ${selectedRetention?.due ? 'border-amber-400/30 bg-amber-400/5' : 'border-white/5 bg-white/[0.03]'}`}>
+                    <span className="text-[8px] font-black text-slate-500 uppercase tracking-widest block mb-2">Mantenimiento de dominio</span>
+                    <p className="text-xs text-white font-bold">
+                      Cada {selectedDefinition.retention.reviewEveryDays} días • {selectedDefinition.retention.kind} • mínimo {Math.round(selectedDefinition.retention.minReviewScore * 100)}%
+                    </p>
+                    <p className="text-[10px] text-slate-500 mt-2">
+                      {selectedDefinition.retention.simplerThanInitial
+                        ? 'Más corto que la evaluación inicial y con preguntas nuevas del mismo concepto.'
+                        : 'Revisión periódica con variantes nuevas.'}
+                    </p>
+                  </div>
+                )}
 
                 {selectedModule && (
                   <div className="bg-white/[0.03] p-5 rounded-2xl border border-white/5">
@@ -286,9 +342,9 @@ export const MasteryMap: React.FC<MasteryMapProps> = ({ learnerState, onLaunchMo
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {[
           { label: 'Evidencias', val: String(evidenceCount), icon: '🧾' },
-          { label: 'Módulos completos', val: String(learnerState.completedModules.length), icon: '🧪' },
+          { label: 'Variantes', val: String(variantCount), icon: '🔁' },
           { label: 'Nodos Master', val: `${masteredCount}/${nodes.length}`, icon: '💎' },
-          { label: 'Artefactos', val: String(learnerState.artifacts.length), icon: '📦' },
+          { label: 'Repasos', val: String(dueReviewCount), icon: '🧠' },
         ].map((stat) => (
           <div key={stat.label} className="bg-white/[0.03] p-6 rounded-3xl border border-white/5 flex items-center gap-4 group hover:border-accent-primary/20 transition-all">
             <span className="text-2xl living-symbol">{stat.icon}</span>
