@@ -1,0 +1,69 @@
+{
+  "schemaVersion": 1,
+  "university": "BlackMamba University",
+  "philosophy": [
+    "Audacia",
+    "Multidisciplinariedad",
+    "Conocimiento real"
+  ],
+  "foundation": {
+    "id": "cimientos-soberania",
+    "name": "Cimientos de Soberanía",
+    "subjects": [
+      "Arquitectura del hogar",
+      "Gastronomía, nutrición y autonomía cotidiana",
+      "Orden del entorno, limpieza e higiene",
+      "Responsabilidad individual e integridad",
+      "Ética del conocimiento",
+      "Especialidad temprana guiada por interés"
+    ]
+  },
+  "coreDomains": [
+    { "id": "math", "name": "Matemáticas", "status": "native" },
+    { "id": "physics", "name": "Física", "status": "native" },
+    { "id": "chemistry", "name": "Química", "status": "native" },
+    { "id": "electronics", "name": "Electrónica y circuitos", "status": "native" },
+    { "id": "control", "name": "Ingeniería de control", "status": "candidate" },
+    { "id": "biology", "name": "Biología", "status": "native" },
+    { "id": "space", "name": "Espacio y astronomía", "status": "native" },
+    { "id": "geography", "name": "Geografía interactiva", "status": "adapter-planned", "source": "Blackmvmba88/XarvisCore" },
+    { "id": "cognition", "name": "Cognición y aprendizaje", "status": "native" }
+  ],
+  "advancedTracks": [
+    {
+      "id": "ai-neural",
+      "name": "IA y sistemas neuronales",
+      "topics": ["C++ neural networks", "Python neural networks", "prompt engineering", "working with AI"]
+    },
+    {
+      "id": "engineering-platforms",
+      "name": "Ingeniería y plataformas",
+      "topics": ["Domain-Driven Design", "Docker", ".NET", "FastAPI"]
+    },
+    {
+      "id": "cybersecurity",
+      "name": "Ciberseguridad",
+      "topics": ["Security fundamentals", "incident management", "threat detection", "Linux shell scripting"]
+    },
+    {
+      "id": "data-science",
+      "name": "Ciencia de datos",
+      "topics": ["PySpark", "data cleaning", "advanced data science", "programming challenges"]
+    },
+    {
+      "id": "creative-development",
+      "name": "Desarrollo creativo",
+      "topics": ["game design", "3D design", "visual communication", "content creation"]
+    },
+    {
+      "id": "teaching-foundations",
+      "name": "Docencia y fundamentos",
+      "topics": ["educational foundations", "teaching tools", "curriculum design", "publishing"]
+    }
+  ],
+  "multidisciplinary": {
+    "enabled": true,
+    "principle": "Permitir rutas que crucen múltiples dominios y produzcan proyectos verificables.",
+    "artifactFirst": true
+  }
+}
