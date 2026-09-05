@@ -9,6 +9,8 @@ import type {
   ModuleEligibility,
 } from './contracts';
 
+const ATTEMPT_MASTERY_CAP = 0.65;
+
 const clamp01 = (value: number): number => Math.max(0, Math.min(1, value));
 
 const progressFor = (
@@ -75,7 +77,7 @@ const masteryCandidate = (
   if (typeof score === 'number') {
     const normalized = clamp01(score);
     if (evidenceType === 'attempt') {
-      return Math.max(current, normalized * 0.8);
+      return Math.max(current, Math.min(normalized * 0.8, ATTEMPT_MASTERY_CAP));
     }
     return Math.max(current, normalized);
   }
