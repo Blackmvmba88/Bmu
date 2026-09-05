@@ -33,9 +33,19 @@ export interface ModuleDefinition {
   artifactTypes: string[];
 }
 
+export interface PracticeProgress {
+  attempts: number;
+  scoreTotal: number;
+  successfulAttempts: number;
+  currentStreak: number;
+  bestStreak: number;
+  lastScore?: number;
+}
+
 export interface CompetencyProgress {
   mastery: number;
   evidenceIds: string[];
+  practice?: PracticeProgress;
   lastUpdatedAt?: string;
 }
 
