@@ -17,7 +17,7 @@ learning/engine.ts
         ↓
 accuracy × (repetition + variant diversity + consistency)
         ↓
-LearnerState + mastery projection + portfolio evidence
+LearnerState + mastery projection
         ↓
 mastery map / Kodex journey / retention review
 ```
@@ -25,10 +25,11 @@ mastery map / Kodex journey / retention review
 ## Source-of-truth boundaries
 
 - `curriculum/registry.json` defines domains, competencies, prerequisite edges, mastery thresholds, retention policies and module targets.
-- `learning/contracts.ts` owns the versioned TypeScript contracts for learner state, practice state, evidence and learning events.
+- `learning/contracts.ts` owns versioned contracts for learner state, practice state, evidence and learning events.
 - `learning/engine.ts` is a deterministic projection layer. It does not call providers or write storage.
-- `learning/persistence.ts` owns local learner-state persistence and rejects malformed or mismatched state.
-- `learning/events.ts` creates normalized practice events.
+- `learning/persistence.ts` owns learner-specific local persistence and rejects malformed or mismatched state.
+- `learning/events.ts` creates normalized practice and retention-review events.
+- `learning/fractionVariants.ts` owns the first practice and retention variant banks.
 - `adapters/kodexJourney.ts` translates BMU state into Kodex journey requests without giving Kodex authority to mutate BMU mastery.
 - UI components consume these projections and must not invent mastery independently.
 
@@ -36,15 +37,15 @@ mastery map / Kodex journey / retention review
 
 Failure is not the opposite of progress. Slow correction is more dangerous than a fast mistake.
 
-BMU therefore optimizes for:
+BMU optimizes for:
 
 ```text
 attempt → immediate feedback → correction → repetition → new variant
 ```
 
-The learner may retry the same problem immediately after a mistake to understand the answer. However, solving the exact same item repeatedly does not count as broad mastery. Variant diversity is tracked separately.
+The learner may retry the same problem immediately after a mistake to understand the answer. Solving the exact same item repeatedly does not count as broad mastery because variant diversity is tracked separately.
 
-The objective is not memorizing an answer. It is recognizing and executing the underlying pattern when the numbers, wording, context or representation change.
+The objective is not memorizing an answer. It is recognizing and executing the underlying pattern when numbers, wording, context or representation change.
 
 ## Repetition-first mastery
 
@@ -55,7 +56,7 @@ Practice mastery combines four signals:
 - **variant diversity** — distinct versions of the same concept;
 - **consistency** — sustained successful streaks.
 
-Accuracy gates the other signals. Repetition, diversity and streaks can strengthen demonstrated understanding, but cannot create mastery from repeated failure alone.
+Accuracy gates the other signals. Repetition, diversity and streaks strengthen demonstrated understanding but cannot create mastery from repeated failure alone.
 
 The current stability envelope is:
 
@@ -72,7 +73,7 @@ Final practice mastery is:
 mastery = accuracy × stability
 ```
 
-Reference targets are currently 8 attempts, 5 distinct variants and a best streak of 4 successful attempts. These are projection parameters, not universal pedagogical constants, and can be calibrated later from real BMU usage.
+Reference targets are currently 8 attempts, 5 distinct variants and a best streak of 4 successful attempts. These are tunable projection parameters, not universal pedagogical constants.
 
 A mistake does not erase previously established mastery. It affects cumulative practice statistics and creates another opportunity to correct quickly. Duplicate event IDs remain idempotent and do not double-count evidence.
 
@@ -111,10 +112,17 @@ The intent is maintenance, not punishment:
 
 - the review is shorter and simpler than the original learning sequence;
 - questions are new variants of the same knowledge rather than copies of earlier items;
-- active continued practice naturally keeps the competency fresh;
-- a failed review means repeat and recover quickly, not erase the learner's history.
+- ongoing successful practice naturally refreshes the demonstrated-knowledge timestamp;
+- a failed review means repeat and recover quickly, not erase the learner's history;
+- a failed review does **not** reset the retention clock.
 
-Current monthly retention policies apply to selected core mathematical and engineering competencies. Project/ethics competencies can instead rely on recurring practical evidence.
+BMU distinguishes three timestamps:
+
+- `lastUpdatedAt` — any activity affected the competency record;
+- `lastDemonstratedAt` — the learner actually demonstrated the knowledge successfully;
+- `lastReviewAt` — a scheduled retention review was passed.
+
+Retention uses the strongest valid anchor (`lastReviewAt` or `lastDemonstratedAt`), not mere activity. Therefore an unsuccessful monthly review remains due until the learner recovers.
 
 ## First closed learning loop: fractions
 
@@ -134,6 +142,23 @@ It now:
 10. updates the evidence-driven Mastery Map.
 
 This establishes the reusable pattern for Physics, Circuits, Algebra and later labs.
+
+## First live retention loop: numerical sense
+
+`FractionRetentionReview` is the first scheduled maintenance surface.
+
+When `math-number-sense` is mastered and its 30-day retention window expires, the Mastery Map exposes a short four-question review.
+
+The review intentionally changes representation instead of replaying the training wheel. Current question forms include:
+
+- percentage → fraction;
+- words → fraction;
+- fraction → percentage;
+- equivalent fractions;
+- remaining fraction;
+- simple comparisons.
+
+The current review threshold is `0.70`, so 3 of 4 correct answers passes. A failed set can immediately be repeated with another subset of variants. A pass emits explicit retention-review evidence and refreshes `lastReviewAt`; a failure is recorded but does not refresh the due date.
 
 ## Kodex boundary
 
@@ -168,8 +193,8 @@ Then normal TypeScript and production build validation runs.
 ## Next integration slice
 
 1. Apply the repetition/variant event pattern to Algebra, Physics and Circuits.
-2. Add a generated lightweight retention-review surface for competencies that are due.
-3. Mark successful retention reviews with explicit review evidence and timestamps.
-4. Add a visible Kodex journey panel for the next eligible module.
-5. Generate portfolio entries only from accepted evidence.
+2. Add retention-review generators for those selected core competencies.
+3. Add a visible Kodex journey panel for the next eligible module.
+4. Generate portfolio entries only from accepted evidence.
+5. Add explicit learner-state migration strategy for future schema versions.
 6. Move provider credentials behind the BMU gateway before production deployment.
