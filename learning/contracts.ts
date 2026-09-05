@@ -57,6 +57,7 @@ export interface CompetencyProgress {
   mastery: number;
   evidenceIds: string[];
   practice?: PracticeProgress;
+  lastDemonstratedAt?: string;
   lastReviewAt?: string;
   lastUpdatedAt?: string;
 }
