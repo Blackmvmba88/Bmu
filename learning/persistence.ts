@@ -11,6 +11,28 @@ const isRecord = (value: unknown): value is Record<string, unknown> =>
 const isStringArray = (value: unknown): value is string[] =>
   Array.isArray(value) && value.every((item) => typeof item === 'string');
 
+const isFiniteNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value);
+
+const isPracticeProgress = (value: unknown): boolean => {
+  if (!isRecord(value)) return false;
+
+  for (const key of [
+    'attempts',
+    'scoreTotal',
+    'successfulAttempts',
+    'currentStreak',
+    'bestStreak',
+  ]) {
+    if (!isFiniteNumber(value[key]) || Number(value[key]) < 0) return false;
+  }
+
+  if (!isStringArray(value.variantIds)) return false;
+  if (value.lastScore !== undefined && !isFiniteNumber(value.lastScore)) return false;
+
+  return true;
+};
+
 export const isLearnerState = (
   value: unknown,
   expectedLearnerId?: string,
@@ -33,9 +55,18 @@ export const isLearnerState = (
 
   for (const progress of Object.values(value.competencies)) {
     if (!isRecord(progress)) return false;
-    if (typeof progress.mastery !== 'number') return false;
+    if (!isFiniteNumber(progress.mastery)) return false;
     if (progress.mastery < 0 || progress.mastery > 1) return false;
     if (!isStringArray(progress.evidenceIds)) return false;
+    if (progress.practice !== undefined && !isPracticeProgress(progress.practice)) {
+      return false;
+    }
+    if (
+      progress.lastReviewAt !== undefined &&
+      typeof progress.lastReviewAt !== 'string'
+    ) {
+      return false;
+    }
     if (
       progress.lastUpdatedAt !== undefined &&
       typeof progress.lastUpdatedAt !== 'string'
