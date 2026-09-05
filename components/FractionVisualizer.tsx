@@ -1,4 +1,5 @@
 import React, { useMemo, useState } from 'react';
+import { FRACTION_PRACTICE_VARIANTS } from '../learning/fractionVariants';
 
 export interface FractionAttempt {
   challengeId: string;
@@ -14,21 +15,6 @@ interface FractionVisualizerProps {
   onAttempt?: (attempt: FractionAttempt) => void;
 }
 
-interface FractionChallenge {
-  id: string;
-  numerator: number;
-  denominator: number;
-}
-
-const CHALLENGES: FractionChallenge[] = [
-  { id: 'fraction-ratio-3-of-8', numerator: 3, denominator: 8 },
-  { id: 'fraction-ratio-2-of-5', numerator: 2, denominator: 5 },
-  { id: 'fraction-ratio-4-of-7', numerator: 4, denominator: 7 },
-  { id: 'fraction-ratio-5-of-9', numerator: 5, denominator: 9 },
-  { id: 'fraction-ratio-3-of-4', numerator: 3, denominator: 4 },
-  { id: 'fraction-ratio-5-of-8', numerator: 5, denominator: 8 },
-];
-
 export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
   theme = 'mamba',
   onAttempt,
@@ -39,7 +25,7 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
   const [totalWeight] = useState(1000);
   const [challengeResult, setChallengeResult] = useState<'correct' | 'incorrect' | null>(null);
 
-  const challenge = CHALLENGES[challengeIndex];
+  const challenge = FRACTION_PRACTICE_VARIANTS[challengeIndex];
   const percentage = ((slicesSelected / totalSlices) * 100).toFixed(0);
   const weightPerSlice = totalWeight / totalSlices;
   const currentWeight = (slicesSelected * weightPerSlice).toFixed(0);
@@ -96,8 +82,8 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
   };
 
   const nextChallenge = () => {
-    const nextIndex = (challengeIndex + 1) % CHALLENGES.length;
-    const next = CHALLENGES[nextIndex];
+    const nextIndex = (challengeIndex + 1) % FRACTION_PRACTICE_VARIANTS.length;
+    const next = FRACTION_PRACTICE_VARIANTS[nextIndex];
     const starterDenominator = Math.max(2, next.numerator, next.denominator - 1);
     const starterNumerator = Math.max(1, Math.min(next.numerator - 1, starterDenominator));
 
