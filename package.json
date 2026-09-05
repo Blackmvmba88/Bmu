@@ -1,13 +1,14 @@
 {
   "name": "blackmamba-university",
   "private": true,
-  "version": "0.8.0",
+  "version": "0.9.0",
   "type": "module",
   "scripts": {
     "dev": "vite",
+    "validate:curriculum": "node scripts/validate-curriculum.mjs",
     "typecheck": "tsc --noEmit",
     "build": "vite build",
-    "check": "npm run typecheck && npm run build",
+    "check": "npm run validate:curriculum && npm run typecheck && npm run build",
     "preview": "vite preview"
   },
   "dependencies": {
