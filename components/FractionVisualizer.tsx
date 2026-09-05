@@ -14,25 +14,35 @@ interface FractionVisualizerProps {
   onAttempt?: (attempt: FractionAttempt) => void;
 }
 
-const CHALLENGE = {
-  id: 'fraction-ratio-3-of-8',
-  numerator: 3,
-  denominator: 8,
-};
+interface FractionChallenge {
+  id: string;
+  numerator: number;
+  denominator: number;
+}
+
+const CHALLENGES: FractionChallenge[] = [
+  { id: 'fraction-ratio-3-of-8', numerator: 3, denominator: 8 },
+  { id: 'fraction-ratio-2-of-5', numerator: 2, denominator: 5 },
+  { id: 'fraction-ratio-4-of-7', numerator: 4, denominator: 7 },
+  { id: 'fraction-ratio-5-of-9', numerator: 5, denominator: 9 },
+  { id: 'fraction-ratio-3-of-4', numerator: 3, denominator: 4 },
+  { id: 'fraction-ratio-5-of-8', numerator: 5, denominator: 8 },
+];
 
 export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
   theme = 'mamba',
   onAttempt,
 }) => {
+  const [challengeIndex, setChallengeIndex] = useState(0);
   const [slicesSelected, setSlicesSelected] = useState(2);
   const [totalSlices, setTotalSlices] = useState(8);
   const [totalWeight] = useState(1000);
   const [challengeResult, setChallengeResult] = useState<'correct' | 'incorrect' | null>(null);
 
+  const challenge = CHALLENGES[challengeIndex];
   const percentage = ((slicesSelected / totalSlices) * 100).toFixed(0);
   const weightPerSlice = totalWeight / totalSlices;
   const currentWeight = (slicesSelected * weightPerSlice).toFixed(0);
-
   const accentColor = 'var(--accent-primary)';
 
   const slicePaths = useMemo(() => {
@@ -45,24 +55,20 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
     for (let i = 0; i < totalSlices; i++) {
       const startAngle = i * angleStep - Math.PI / 2;
       const endAngle = (i + 1) * angleStep - Math.PI / 2;
-
       const x1 = centerX + radius * Math.cos(startAngle);
       const y1 = centerY + radius * Math.sin(startAngle);
       const x2 = centerX + radius * Math.cos(endAngle);
       const y2 = centerY + radius * Math.sin(endAngle);
-
       const largeArcFlag = angleStep > Math.PI ? 1 : 0;
-
-      const d = [
-        `M ${centerX} ${centerY}`,
-        `L ${x1} ${y1}`,
-        `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
-        'Z',
-      ].join(' ');
 
       paths.push({
         id: i,
-        d,
+        d: [
+          `M ${centerX} ${centerY}`,
+          `L ${x1} ${y1}`,
+          `A ${radius} ${radius} 0 ${largeArcFlag} 1 ${x2} ${y2}`,
+          'Z',
+        ].join(' '),
         isSelected: i < slicesSelected,
       });
     }
@@ -71,18 +77,31 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
 
   const validateChallenge = () => {
     const correct =
-      slicesSelected === CHALLENGE.numerator &&
-      totalSlices === CHALLENGE.denominator;
+      slicesSelected === challenge.numerator &&
+      totalSlices === challenge.denominator;
 
     setChallengeResult(correct ? 'correct' : 'incorrect');
     onAttempt?.({
-      challengeId: CHALLENGE.id,
+      challengeId: challenge.id,
       selectedNumerator: slicesSelected,
       selectedDenominator: totalSlices,
-      targetNumerator: CHALLENGE.numerator,
-      targetDenominator: CHALLENGE.denominator,
+      targetNumerator: challenge.numerator,
+      targetDenominator: challenge.denominator,
       correct,
     });
+  };
+
+  const retryChallenge = () => {
+    setChallengeResult(null);
+  };
+
+  const nextChallenge = () => {
+    const nextIndex = (challengeIndex + 1) % CHALLENGES.length;
+    const next = CHALLENGES[nextIndex];
+    setChallengeIndex(nextIndex);
+    setSlicesSelected(Math.max(1, Math.min(next.numerator - 1, next.denominator)));
+    setTotalSlices(next.denominator === totalSlices ? Math.max(2, next.denominator - 1) : totalSlices);
+    setChallengeResult(null);
   };
 
   return (
@@ -97,17 +116,17 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
             </h3>
             <p className="text-slate-500 font-bold text-xs uppercase tracking-[0.4em] flex items-center gap-2">
               <span className="w-2 h-2 rounded-full accent-bg animate-ping" />
-              Toca el círculo para aprender
+              Repite rápido • comprende • cambia de variante
             </p>
           </div>
 
           <div className="bg-black/30 p-6 rounded-[2rem] border border-white/5 space-y-4">
             <span className="text-[9px] font-black accent-text uppercase tracking-[0.35em]">Misión verificable</span>
             <p className="text-white font-black text-xl">
-              Representa exactamente <span className="mamba-text">{CHALLENGE.numerator}/{CHALLENGE.denominator}</span> en la rueda.
+              Representa exactamente <span className="mamba-text">{challenge.numerator}/{challenge.denominator}</span> en la rueda.
             </p>
             <p className="text-slate-500 text-xs">
-              Ajusta numerador y denominador; después valida. El resultado se registra como evidencia de práctica, no como certificación final.
+              Si fallas, corriges de inmediato. Cuando lo resuelves, la siguiente misión cambia para comprobar que entendiste el concepto y no una respuesta concreta.
             </p>
           </div>
 
@@ -151,18 +170,45 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
               />
             </div>
 
-            <button
-              onClick={validateChallenge}
-              className="w-full py-4 rounded-2xl accent-bg text-black text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-transform"
-            >
-              Validar misión {CHALLENGE.numerator}/{CHALLENGE.denominator}
-            </button>
+            {!challengeResult && (
+              <button
+                onClick={validateChallenge}
+                className="w-full py-4 rounded-2xl accent-bg text-black text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-transform"
+              >
+                Validar misión {challenge.numerator}/{challenge.denominator}
+              </button>
+            )}
 
-            {challengeResult && (
-              <div className={`p-4 rounded-2xl border text-xs font-black uppercase tracking-widest ${challengeResult === 'correct' ? 'border-accent-primary/30 text-accent-primary bg-accent-primary/5' : 'border-red-500/20 text-red-400 bg-red-500/5'}`}>
-                {challengeResult === 'correct'
-                  ? 'Evidencia aceptada: representación correcta.'
-                  : `Todavía no: tienes ${slicesSelected}/${totalSlices}. Ajusta la rueda y vuelve a validar.`}
+            {challengeResult === 'incorrect' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl border border-red-500/20 text-red-300 bg-red-500/5 space-y-2">
+                  <p className="text-xs font-black uppercase tracking-widest">
+                    Todavía no: tienes {slicesSelected}/{totalSlices}.
+                  </p>
+                  <p className="text-xs text-slate-400">
+                    Piensa así: el denominador dice cuántas partes iguales existen; el numerador cuántas seleccionas. Aquí necesitas {challenge.denominator} partes y seleccionar {challenge.numerator}.
+                  </p>
+                </div>
+                <button
+                  onClick={retryChallenge}
+                  className="w-full py-4 rounded-2xl border border-accent-primary/30 text-accent-primary text-[10px] font-black uppercase tracking-[0.3em] hover:bg-accent-primary/5 transition-colors"
+                >
+                  Corregir y repetir
+                </button>
+              </div>
+            )}
+
+            {challengeResult === 'correct' && (
+              <div className="space-y-4">
+                <div className="p-4 rounded-2xl border border-accent-primary/30 text-accent-primary bg-accent-primary/5 text-xs font-black uppercase tracking-widest">
+                  Evidencia aceptada. Ahora demuestra la misma idea con otra fracción.
+                </div>
+                <button
+                  onClick={nextChallenge}
+                  className="w-full py-4 rounded-2xl accent-bg text-black text-[10px] font-black uppercase tracking-[0.3em] hover:scale-[1.02] transition-transform"
+                >
+                  Siguiente variante
+                </button>
               </div>
             )}
           </div>
@@ -186,7 +232,6 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
 
           <svg viewBox="0 0 300 300" className="w-full h-full drop-shadow-[0_0_50px_rgba(0,0,0,0.8)] relative z-10 transition-transform duration-500 group-hover:rotate-6">
             <circle cx="150" cy="150" r="148" fill="none" stroke="currentColor" strokeWidth="4" className="text-white/5" />
-
             {slicePaths.map((slice, i) => (
               <path
                 key={slice.id}
@@ -204,7 +249,6 @@ export const FractionVisualizer: React.FC<FractionVisualizerProps> = ({
                 }}
               />
             ))}
-
             <circle cx="150" cy="150" r="35" className="fill-black stroke-white/20 stroke-2" />
             <text x="150" y="157" textAnchor="middle" fill="currentColor" className="text-[12px] font-black pointer-events-none uppercase tracking-tighter accent-text">
               {theme === 'mamba' ? 'Mamba' : 'Pao'}
