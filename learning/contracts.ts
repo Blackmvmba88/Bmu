@@ -8,9 +8,18 @@ export type EvidenceType =
   | 'artifact'
   | 'mentor-review';
 
+export type RetentionReviewKind = 'micro-quiz' | 'challenge' | 'artifact';
+
 export interface CompetencyRequirement {
   competencyId: string;
   minimumMastery: number;
+}
+
+export interface RetentionPolicy {
+  reviewEveryDays: number;
+  minReviewScore: number;
+  kind: RetentionReviewKind;
+  simplerThanInitial: boolean;
 }
 
 export interface CompetencyDefinition {
@@ -20,6 +29,7 @@ export interface CompetencyDefinition {
   description: string;
   prerequisites: CompetencyRequirement[];
   masteryThreshold: number;
+  retention?: RetentionPolicy;
 }
 
 export interface ModuleDefinition {
@@ -46,6 +56,7 @@ export interface CompetencyProgress {
   mastery: number;
   evidenceIds: string[];
   practice?: PracticeProgress;
+  lastReviewAt?: string;
   lastUpdatedAt?: string;
 }
 
@@ -93,4 +104,12 @@ export interface ModuleEligibility {
   moduleId: string;
   eligible: boolean;
   unmetRequirements: CompetencyRequirement[];
+}
+
+export interface RetentionStatus {
+  competencyId: string;
+  required: boolean;
+  due: boolean;
+  dueAt?: string;
+  daysRemaining?: number;
 }
